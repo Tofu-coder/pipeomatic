@@ -47,7 +47,6 @@ The name PipeOmatiC.io does not require a custom domain. GitHub Pages provides t
 
 ## Content and implementation boundaries
 
-- Source documents are included in `public/documents/`: the recovered Elevator Pitch Group 2 PDF and the earlier rendered Muhammad Latif BME 100 Pre-Meeting 4 PDF. The requested `/mnt/data` paths were unavailable on this Mac; these recovered documents were used instead.
 - All nine team members follow the elevator pitch. No roles were inferred.
 - Original SVG gantry schematics interpret the slide concepts; they are not fabricated hardware, engineering CAD, or a validated model.
 - Studio implements a selectable 8 × 12 plate, distinct-well checks, a 1–200 µL demo input range, four-step preview, reset, and clipboard JSON export. The range is illustrative, not a hardware specification.
