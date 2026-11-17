@@ -335,21 +335,47 @@ function Studio() {
 function App() {
   const root = useRef<HTMLDivElement>(null);
   const [menu, setMenu] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
   useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
+        });
+      },
+      { rootMargin: "-15% 0px -55% 0px" },
+    );
+    document
+      .querySelectorAll("main section[id]")
+      .forEach((section) => observer.observe(section));
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenu(false);
+    };
+    window.addEventListener("keydown", close);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("keydown", close);
+    };
+  }, []);
+  useEffect(() => {
+    const progress = gsap.to(".reading-progress", {
+      scaleX: 1,
+      ease: "none",
+      scrollTrigger: { start: 0, end: "max", scrub: true },
+    });
     const mm = gsap.matchMedia();
     mm.add("(prefers-reduced-motion: no-preference)", () => {
-      gsap.utils
-        .toArray<HTMLElement>(".reveal")
-        .forEach((el) =>
-          gsap.from(el, {
-            y: 40,
-            opacity: 0,
-            duration: 0.9,
-            scrollTrigger: { trigger: el, start: "top 92%", once: true },
-          }),
-        );
-      gsap.to(".machine-body", {
-        y: -22,
+      gsap.utils.toArray<HTMLElement>(".reveal").forEach((el) =>
+        gsap.from(el, {
+          y: 24,
+          opacity: 0,
+          duration: 1.1,
+          ease: "power3.out",
+          scrollTrigger: { trigger: el, start: "top 92%", once: true },
+        }),
+      );
+      gsap.to(".hero .machine-body", {
+        y: -35,
         scrollTrigger: {
           trigger: ".hero",
           start: "top top",
@@ -358,13 +384,18 @@ function App() {
         },
       });
     });
-    return () => mm.revert();
+    return () => {
+      mm.revert();
+      progress.scrollTrigger?.kill();
+      progress.kill();
+    };
   }, []);
   return (
     <div ref={root}>
       <a className="skip" href="#main">
         Skip to content
       </a>
+      <div className="reading-progress" aria-hidden="true" />
       <header>
         <a className="brand" href="#">
           PipeOmatiC<span>.io</span>
@@ -387,7 +418,12 @@ function App() {
             ["Engineering", "engineering"],
             ["Our team", "team"],
           ].map(([t, id]) => (
-            <a key={id} href={`#${id}`} onClick={() => setMenu(false)}>
+            <a
+              key={id}
+              href={`#${id}`}
+              aria-current={activeSection === id ? "location" : undefined}
+              onClick={() => setMenu(false)}
+            >
               {t}
             </a>
           ))}
@@ -399,22 +435,23 @@ function App() {
       <main id="main">
         <section className="hero">
           <div className="hero-copy reveal">
-            <p className="eyebrow">BME 100 · GROUP 2 / DESIGN CONCEPT</p>
+            <p className="eyebrow">BME 100 · GROUP 2 · A DESIGN EXPLORATION</p>
             <h1>
-              Every drop.
+              Less repetition.
               <br />
-              <span>A possibility.</span>
+              <span>More discovery.</span>
             </h1>
             <p className="hero-description">
-              Less repetition. More room for discovery.
-              <br />A vision for accessible automated pipetting.
+              A considered approach to automated pipetting.
+              <br />
+              Designed around the people behind the science.
             </p>
             <div className="hero-actions">
               <a className="button primary" href="#studio">
-                Try the software concept <span>↗</span>
+                Experience Studio <span>↗</span>
               </a>
-              <a className="text-link" href="#engineering">
-                Meet the design ↓
+              <a className="text-link" href="#idea">
+                Explore the idea <span>↓</span>
               </a>
             </div>
           </div>
@@ -422,16 +459,30 @@ function App() {
             <div className="orbital" />
             <Machine />
             <span className="art-label">
-              01 — BENCHTOP SYSTEM
+              PIPEOMATIC / CONCEPT 01
               <br />
               <b>Proposed design · Original schematic</b>
             </span>
           </div>
           <div className="hero-bottom">
-            <span>A STUDENT CONCEPT. A REAL CURIOSITY.</span>
+            <span>ACCESSIBLE AUTOMATION. AN OPEN POSSIBILITY.</span>
             <span>SCROLL TO EXPLORE ↓</span>
           </div>
         </section>
+        <div className="overview-strip" aria-label="Project at a glance">
+          <div>
+            <strong>96 wells.</strong>
+            <span>One familiar starting point.</span>
+          </div>
+          <div>
+            <strong>A clearer workflow.</strong>
+            <span>Source. Destination. Volume.</span>
+          </div>
+          <div>
+            <strong>Built to explore.</strong>
+            <span>An interactive concept, in your browser.</span>
+          </div>
+        </div>
         <section className="light section" id="idea">
           <div className="section-heading reveal">
             <p className="eyebrow">01 / THE REASON</p>

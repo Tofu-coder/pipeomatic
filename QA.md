@@ -12,9 +12,15 @@
 - At a 390px mobile viewport, body width equaled viewport width (no horizontal overflow). Reviewed stacked controls and mobile navigation.
 - Desktop layout checked at larger breakpoints; body width equaled viewport width at 1440px.
 - Reduced-motion behavior is implemented through GSAP media matching and CSS overrides; operating-system preference switching was not exercised in browser testing.
-- GitHub Actions deployment has not been run: repository/account details were not provided. The workflow uses GitHub Pages metadata for its base path.
+- GitHub Pages deployment was verified on November 13. The workflow uses GitHub Pages metadata for its base path.
 - External reference links were checked against the official Opentrons and NVIDIA documentation. The journal DOI was preserved from the pre-meeting; its resolver returned 403 to automated retrieval.
 
 ## Content provenance
 
 The `/mnt/data` location was unavailable. The elevator pitch attachment was recovered through the referenced conversation. The pre-meeting was recovered from an earlier local artifact named `Muhammad Latif - BME 100 Pre-Meeting 4.pdf`. Both are bundled for review. No performance data or team roles were invented.
+
+## November 17 visual refinement
+
+Reworked the centered product introduction, system typography, neutral backgrounds, blue actions, editorial spacing, dark engineering section, Studio surfaces, and team/reference layouts. Added section-aware navigation, Escape-to-close mobile navigation, scroll progress, and softer scoped reveal motion.
+
+Production TypeScript/Vite build passed with the GitHub Pages base path. Browser checks at desktop and mobile breakpoints confirmed 96 wells and no horizontal overflow. Mobile menu keyboard dismissal and transfer playback were exercised. Academic source links, all team credits, and concept labels remain present.
