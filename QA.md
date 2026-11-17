@@ -24,3 +24,11 @@ The `/mnt/data` location was unavailable. The elevator pitch attachment was reco
 Reworked the centered product introduction, system typography, neutral backgrounds, blue actions, editorial spacing, dark engineering section, Studio surfaces, and team/reference layouts. Added section-aware navigation, Escape-to-close mobile navigation, scroll progress, and softer scoped reveal motion.
 
 Production TypeScript/Vite build passed with the GitHub Pages base path. Browser checks at desktop and mobile breakpoints confirmed 96 wells and no horizontal overflow. Mobile menu keyboard dismissal and transfer playback were exercised. Academic source links, all team credits, and concept labels remain present.
+
+## Cinematic product reveal
+
+- Replaced the opening schematic with an original photorealistic concept image (257 KB JPEG), disclosed on screen and in alt text as AI-generated and not a built prototype.
+- Added a sticky, scroll-linked GSAP camera sequence: shadow reveal, instrument detail, plate detail, and Studio invitation. The camera uses image transforms, not a real 3D model. Existing technical schematic remains in Engineering.
+- Browser verification: full-machine desktop opening; instrument and plate chapters; camera transforms changing with scroll; reverse scroll restoring the instrument chapter; mobile opening and 390px body width with no horizontal overflow; skip link reaching the idea section.
+- Reduced-motion media query removes the extended scroll distance and sticky scene, presents the static render, and exposes a concise story and Studio link. Preference switching was reviewed in code, not toggled in the browser.
+- The asset is served from the configured Vite base path. Production TypeScript/Vite build passed with `/pipeomatic/`.

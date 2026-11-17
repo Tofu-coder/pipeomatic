@@ -65,3 +65,7 @@ The name PipeOmatiC.io does not require a custom domain. GitHub Pages provides t
 ## Checks performed
 
 Production TypeScript/Vite build; root and `/pipeomatic/` base-path builds; browser selection and volume validation; transfer completion; desktop/mobile visual review. See `QA.md` for details.
+
+## Cinematic reveal
+
+The opening now uses an original AI-generated product concept image and a scroll-linked camera sequence. It is a proposed design visualization, not real hardware or a validated CAD model. The sequence pans, scales, and lights the image; it does not rotate a real 3D model. Reduced-motion users receive a static presentation. The technical schematic remains in Engineering. See `ASSET-NOTES.md` for the full image-generation prompt and provenance.

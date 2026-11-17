@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import "./style.css";
+import ProductReveal from "./ProductReveal";
 gsap.registerPlugin(ScrollTrigger);
 const wells = Array.from(
   { length: 96 },
@@ -374,15 +375,6 @@ function App() {
           scrollTrigger: { trigger: el, start: "top 92%", once: true },
         }),
       );
-      gsap.to(".hero .machine-body", {
-        y: -35,
-        scrollTrigger: {
-          trigger: ".hero",
-          start: "top top",
-          end: "bottom top",
-          scrub: 1,
-        },
-      });
     });
     return () => {
       mm.revert();
@@ -433,42 +425,7 @@ function App() {
         </nav>
       </header>
       <main id="main">
-        <section className="hero">
-          <div className="hero-copy reveal">
-            <p className="eyebrow">BME 100 · GROUP 2 · A DESIGN EXPLORATION</p>
-            <h1>
-              Less repetition.
-              <br />
-              <span>More discovery.</span>
-            </h1>
-            <p className="hero-description">
-              A considered approach to automated pipetting.
-              <br />
-              Designed around the people behind the science.
-            </p>
-            <div className="hero-actions">
-              <a className="button primary" href="#studio">
-                Experience Studio <span>↗</span>
-              </a>
-              <a className="text-link" href="#idea">
-                Explore the idea <span>↓</span>
-              </a>
-            </div>
-          </div>
-          <div className="hero-art">
-            <div className="orbital" />
-            <Machine />
-            <span className="art-label">
-              PIPEOMATIC / CONCEPT 01
-              <br />
-              <b>Proposed design · Original schematic</b>
-            </span>
-          </div>
-          <div className="hero-bottom">
-            <span>ACCESSIBLE AUTOMATION. AN OPEN POSSIBILITY.</span>
-            <span>SCROLL TO EXPLORE ↓</span>
-          </div>
-        </section>
+        <ProductReveal />
         <div className="overview-strip" aria-label="Project at a glance">
           <div>
             <strong>96 wells.</strong>
