@@ -1,6 +1,12 @@
-# Cinematic product asset
+# Current 3D presentation
 
-The website uses a newly generated concept visualization, created with the built-in image generation tool. The original PNG was exported as a JPEG for delivery (about a few hundred KB). This is an artistic interpretation of the team's gantry concept, not CAD or a photograph of built hardware. The well geometry in the render is illustrative; the actual interactive interface separately implements exactly 96 wells.
+The main product presentation is now an original Three.js geometric scene authored in `src/MachineScene.ts`, not a generated image. It uses actual independent geometry for the frame, rails, carriage, pipette, tip, 96-well plate, rack, and waste opening. Materials, image-based studio lighting, lights, shadows and a perspective camera render in the visitor's browser. No 3D asset or external environment file is downloaded.
+
+The motion illustrates aspiration, lift, horizontal travel, dispense, and retraction. It is not engineering CAD, validated clearance checking, fluid simulation or hardware operation. The former generated image is retained only as an automatic no-WebGL fallback. Its original prompt and provenance follow.
+
+# Product asset history
+
+The previous website opening used a generated concept visualization, created with the built-in image generation tool. The original PNG was exported as a JPEG for delivery (about a few hundred KB). This is an artistic interpretation of the team's gantry concept, not CAD or a photograph of built hardware. The well geometry in the render is illustrative; the actual interactive interface separately implements exactly 96 wells.
 
 Asset: `public/images/pipeomatic-concept-studio.jpg`.
 

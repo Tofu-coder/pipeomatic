@@ -66,6 +66,8 @@ The name PipeOmatiC.io does not require a custom domain. GitHub Pages provides t
 
 Production TypeScript/Vite build; root and `/pipeomatic/` base-path builds; browser selection and volume validation; transfer completion; desktop/mobile visual review. See `QA.md` for details.
 
-## Cinematic reveal
+## Spatial machine experience
 
-The opening now uses an original AI-generated product concept image and a scroll-linked camera sequence. It is a proposed design visualization, not real hardware or a validated CAD model. The sequence pans, scales, and lights the image; it does not rotate a real 3D model. Reduced-motion users receive a static presentation. The technical schematic remains in Engineering. See `ASSET-NOTES.md` for the full image-generation prompt and provenance.
+The opening is an original real-time Three.js scene, with physically based materials, a studio environment, shadows, separately moving gantry/carriage/pipette parts, 96 geometric wells, and illustrative liquid indicators. Scrolling drives the cycle and a centered camera orbit. Play transfer runs the same sequence without scrolling; Still view disables the long scroll sequence and offers a static explanation. System reduced-motion preferences enable Still view by default.
+
+This is an illustrative geometric animation, not validated CAD, robotic control, clearance simulation or fluid physics. Tip pickup and disposal remain part of the proposed full workflow; this scene starts with an attached tip and illustrates the transfer segment. The prior AI-generated render remains only as a fallback if WebGL is unavailable.

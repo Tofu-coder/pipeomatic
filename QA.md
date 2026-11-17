@@ -32,3 +32,14 @@ Production TypeScript/Vite build passed with the GitHub Pages base path. Browser
 - Browser verification: full-machine desktop opening; instrument and plate chapters; camera transforms changing with scroll; reverse scroll restoring the instrument chapter; mobile opening and 390px body width with no horizontal overflow; skip link reaching the idea section.
 - Reduced-motion media query removes the extended scroll distance and sticky scene, presents the static render, and exposes a concise story and Studio link. Preference switching was reviewed in code, not toggled in the browser.
 - The asset is served from the configured Vite base path. Production TypeScript/Vite build passed with `/pipeomatic/`.
+
+## Operating 3D scene
+
+- Replaced image panning with an original, lazy-loaded Three.js model. Frame, guide rods, carriage, gantry, pipette, rack, and plate are distinct geometric objects. The plate contains 96 instanced well rings and recesses.
+- Verified a single canvas in the browser and a 390px viewport with matching body width. Full machine framing was visually reviewed on phone and desktop, including camera orbit.
+- Browser playback verification: aspiration at progress 0.280 with vertical offset -0.420; paused state stayed unchanged across observations. Dispensing at progress 0.660, carriage X 0.932, vertical offset -0.412; the source starts at X 0.008. Completion reaches progress 1.000 with the tip retracted to offset 0.
+- Still view toggles the static layout; reduced-motion preferences use the same layout by default. Playback controls are disabled while Still view is active. Operating-system preference switching was not independently toggled.
+- Scroll-driven camera and mechanism transitions were verified; manual playback holds its final/paused state until a fresh scroll input or navigation. Keyboard navigation ignores form/button input when resuming scroll control.
+- Added no-WebGL fallback to the previous generated image; fallback failure handling was reviewed in code, not forced in the browser.
+- Production build passes under `/pipeomatic/`. Three.js is in a separate lazy-loaded chunk, approximately 137 KB compressed. Rendering is event-driven; there is no permanent animation loop when the scene is idle.
+- Scope: geometric illustration of the transfer portion, with a tip already attached. No real robot operation, fluid physics, validated dimensions, clearances, accuracy, or automated tip disposal is claimed.
