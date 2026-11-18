@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -20,96 +20,6 @@ const team = [
   "Nicholas Velasco",
   "Zachary Lin",
 ];
-function Machine() {
-  const id = useId().replaceAll(":", "");
-  return (
-    <svg
-      className="machine"
-      viewBox="0 0 900 590"
-      role="img"
-      aria-labelledby={`${id}-machine-title`}
-    >
-      <title id={`${id}-machine-title`}>
-        Original schematic concept of an open gantry pipetting system, with
-        pipette, tip rack and well plate
-      </title>
-      <defs>
-        <linearGradient id={`${id}-metal`} x2="1" y2="1">
-          <stop stopColor="#e7edf3" />
-          <stop offset=".35" stopColor="#758a9a" />
-          <stop offset=".55" stopColor="#c3d2dd" />
-          <stop offset="1" stopColor="#354858" />
-        </linearGradient>
-        <linearGradient id={`${id}-deck`} x2="0" y2="1">
-          <stop stopColor="#536673" />
-          <stop offset="1" stopColor="#192832" />
-        </linearGradient>
-        <radialGradient id={`${id}-glow`}>
-          <stop stopColor="#72c9ef" stopOpacity=".22" />
-          <stop offset="1" stopColor="#72c9ef" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <ellipse cx="450" cy="460" rx="420" ry="125" fill={`url(#${id}-glow)`} />
-      <g className="machine-body">
-        <path
-          d="M140 390 615 330 790 433 310 520Z"
-          fill={`url(#${id}-deck)`}
-          stroke="#a8bbc7"
-        />
-        <path
-          d="m140 390 170 130 480-87v26L310 548 140 417Z"
-          fill="#1e2c36"
-          stroke="#647b8c"
-        />
-        <g
-          stroke={`url(#${id}-metal)`}
-          strokeWidth="15"
-          fill="none"
-          strokeLinejoin="bevel"
-        >
-          <path d="M160 398V125L610 70v270M310 504V225L770 166v270M160 125l150 100M610 70l160 96M160 141l450-55M310 243l460-59" />
-          <path d="m204 195 437-55 79 52-439 58Z" strokeWidth="9" />
-        </g>
-        <path
-          d="m445 167 61-8 35 25v116l-61 9-35-25Z"
-          fill={`url(#${id}-metal)`}
-          stroke="#b5c9d6"
-        />
-        <path d="m480 209 61-9v100l-61 9Z" fill="#233747" />
-        <path d="m492 303 28-4v43l-14 4-14-9Z" fill="#a5c3d2" />
-        <path d="m500 342 14-2-5 49Z" fill="#8ed4fa" />
-        <path d="m222 369 112-15 67 40-113 18Z" fill="#78a9be" />
-        <g fill="#203f51">
-          {Array.from({ length: 48 }, (_, i) => (
-            <ellipse
-              key={i}
-              cx={235 + (i % 8) * 13 + Math.floor(i / 8) * 10}
-              cy={369 - (i % 8) * 1.7 + Math.floor(i / 8) * 6}
-              rx="3.5"
-              ry="2.4"
-            />
-          ))}
-        </g>
-        <path d="m407 410 165-23 87 49-165 29Z" fill="#e0e9ed" />
-        <g fill="#4c8caf" stroke="#a2d1e8">
-          {wells.map((w, i) => (
-            <ellipse
-              key={w}
-              cx={423 + (i % 12) * 12 + Math.floor(i / 12) * 9}
-              cy={412 - (i % 12) * 1.7 + Math.floor(i / 12) * 5}
-              rx="4"
-              ry="2.5"
-            />
-          ))}
-        </g>
-        <path d="m644 369 46-6 48 30-47 7Z" fill="#667f8d" />
-        <text x="326" y="526" fill="#a6bbc8" fontSize="10" letterSpacing="4">
-          PIPEOMATIC / CONCEPT 01
-        </text>
-      </g>
-    </svg>
-  );
-}
 function Studio() {
   const [source, setSource] = useState("A1"),
     [destination, setDestination] = useState("H12"),
@@ -333,6 +243,92 @@ function Studio() {
     </div>
   );
 }
+function DetailGallery() {
+  const [selected, setSelected] = useState(0);
+  const shots = [
+    {
+      name: "The instrument",
+      image: "studio-hero.jpg",
+      title: "A focused first step.",
+      text: "An open gantry concept, informed by the team's pitch and the Opentrons OT-2 reference platform.",
+    },
+    {
+      name: "The movement",
+      image: "studio-detail.jpg",
+      title: "Every movement, considered.",
+      text: "A single pipette and a proposed path across the deck. Travel and clearances remain to be validated.",
+    },
+    {
+      name: "The starting point",
+      image: "studio-macro.jpg",
+      title: "One plate. Many possibilities.",
+      text: "Begin with one supported 96-well plate model, then check fit, alignment and repeatability.",
+    },
+  ];
+  return (
+    <section className="section highlights" aria-labelledby="highlights-title">
+      <div className="highlights-heading reveal">
+        <h2 id="highlights-title">Take a closer look.</h2>
+        <p>
+          One design. Three perspectives.
+          <br />
+          An introduction to the proposed system.
+        </p>
+      </div>
+      <div className="detail-tabs" role="tablist" aria-label="Design views">
+        {shots.map((shot, i) => (
+          <button
+            key={shot.name}
+            id={`detail-tab-${i}`}
+            role="tab"
+            aria-selected={selected === i}
+            aria-controls="detail-panel"
+            tabIndex={selected === i ? 0 : -1}
+            onClick={() => setSelected(i)}
+            onKeyDown={(e) => {
+              if (["ArrowRight", "ArrowLeft", "Home", "End"].includes(e.key)) {
+                e.preventDefault();
+                const next =
+                  e.key === "Home"
+                    ? 0
+                    : e.key === "End"
+                      ? 2
+                      : (selected + (e.key === "ArrowRight" ? 1 : 2)) % 3;
+                setSelected(next);
+                document.getElementById(`detail-tab-${next}`)?.focus();
+              }
+            }}
+          >
+            {shot.name}
+          </button>
+        ))}
+      </div>
+      <figure
+        className="detail-panel"
+        id="detail-panel"
+        role="tabpanel"
+        aria-labelledby={`detail-tab-${selected}`}
+      >
+        <img
+          src={`${import.meta.env.BASE_URL}images/${shots[selected].image}`}
+          alt={`${shots[selected].name}: a studio-rendered perspective of the proposed pipetting system`}
+          width="1600"
+          height="1200"
+          loading="lazy"
+        />
+        <figcaption>
+          <span>PIPEOMATIC / DESIGN EXPLORATION</span>
+          <h3>{shots[selected].title}</h3>
+          <p>{shots[selected].text}</p>
+        </figcaption>
+      </figure>
+      <p className="detail-footnote">
+        Concept renders from a single source model. Hardware is proposed, not
+        built or validated.
+      </p>
+    </section>
+  );
+}
 function App() {
   const root = useRef<HTMLDivElement>(null);
   const [menu, setMenu] = useState(false);
@@ -426,6 +422,7 @@ function App() {
       </header>
       <main id="main">
         <ProductReveal />
+        <DetailGallery />
         <div className="overview-strip" aria-label="Project at a glance">
           <div>
             <strong>96 wells.</strong>
@@ -495,11 +492,17 @@ function App() {
           </div>
           <div className="engineering-grid reveal">
             <div className="diagram">
-              <Machine />
+              <img
+                src={`${import.meta.env.BASE_URL}images/studio-detail.jpg`}
+                alt="Studio-rendered close-up of the same proposed gantry and pipette used in the opening sequence"
+                loading="lazy"
+                width="1600"
+                height="1200"
+              />
               <p>
-                Illustrative layout based on the pitch’s gantry concept.
+                Rendered from the same source model as the opening sequence.
                 <br />
-                Not CAD, a fabricated prototype, or a clearance-verified model.
+                Design visualization · Not fabricated or clearance-validated.
               </p>
             </div>
             <div className="component-list">

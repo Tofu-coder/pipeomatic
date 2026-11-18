@@ -2,294 +2,375 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import "./product-reveal.css";
-import type { createMachineScene } from "./MachineScene";
 gsap.registerPlugin(ScrollTrigger);
-const captions = [
-  [
-    "A CONCEPT IN MOTION",
-    "Every movement.",
-    "A new possibility.",
-    "An original exploration of automated pipetting.",
-  ],
-  [
-    "01 / ASPIRATE",
-    "Start with a well.",
-    "Draw up possibility.",
-    "The pipette lowers to the source. An illustrative liquid transfer begins.",
-  ],
-  [
-    "02 / TRAVEL",
-    "Rise. Move.",
-    "Find the next well.",
-    "The tip lifts before the carriage travels across the plate.",
-  ],
-  [
-    "03 / DISPENSE",
-    "A measured idea.",
-    "A visible movement.",
-    "The tip lowers again. Liquid appears in the destination well.",
-  ],
-  [
-    "04 / EXPLORE",
-    "Less repetition.",
-    "More discovery.",
-    "Explore the interaction in PipeOmatiC Studio.",
-  ],
+const FRAME_COUNT = 144;
+const chapters = [
+  {
+    label: "01 / READY",
+    title: "A familiar starting point.",
+    text: "One pipette. One plate. A deliberately focused concept.",
+  },
+  {
+    label: "02 / ASPIRATE",
+    title: "Begin at the source.",
+    text: "The pipette lowers. The illustrative transfer begins.",
+  },
+  {
+    label: "03 / TRAVEL",
+    title: "Lift. Then move.",
+    text: "The tip rises before moving to the destination well.",
+  },
+  {
+    label: "04 / DISPENSE",
+    title: "A new destination.",
+    text: "The pipette lowers again and the liquid indicator changes.",
+  },
+  {
+    label: "05 / EXPLORE",
+    title: "Now, make it yours.",
+    text: "Explore source, destination and volume in the Studio demo.",
+  },
 ];
 export default function ProductReveal() {
   const section = useRef<HTMLElement>(null),
-    host = useRef<HTMLDivElement>(null);
-  const engine = useRef<ReturnType<typeof createMachineScene> | null>(null);
-  const play = useRef<gsap.core.Tween | null>(null);
-  const manual = useRef(false),
-    value = useRef({ p: 0 });
-  const [ready, setReady] = useState(false),
+    canvas = useRef<HTMLCanvasElement>(null),
+    range = useRef<HTMLInputElement>(null);
+  const proxy = useRef({ p: 0 }),
+    manual = useRef(false),
+    playback = useRef<gsap.core.Tween | null>(null),
+    paint = useRef((p: number) => {
+      void p;
+    }),
+    shown = useRef(-1),
+    preloadFull = useRef(() => {});
+  const [chapter, setChapter] = useState(0),
+    [loaded, setLoaded] = useState(0),
     [playing, setPlaying] = useState(false),
-    [failed, setFailed] = useState(false);
-  const [still, setStill] = useState(
-    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-  );
-  const paint = useRef((p: number) => {
-    void p;
-  });
+    [still, setStill] = useState(
+      () => matchMedia("(prefers-reduced-motion: reduce)").matches,
+    );
+  const motionReady = loaded === FRAME_COUNT;
   useLayoutEffect(() => {
-    let disposed = false;
-    paint.current = (p: number) => {
-      const phase = p < 0.17 ? 0 : p < 0.38 ? 1 : p < 0.6 ? 2 : p < 0.8 ? 3 : 4;
-      engine.current?.draw(p);
-      section.current
-        ?.querySelectorAll<HTMLElement>(".operation-caption")
-        .forEach((el, i) => {
-          el.style.opacity = i === phase ? "1" : "0";
-          el.style.visibility = i === phase ? "visible" : "hidden";
-        });
-      section.current
-        ?.querySelectorAll<HTMLElement>(".operation-step")
-        .forEach((el, i) =>
-          el.classList.toggle("current", i === Math.max(0, phase - 1)),
-        );
-      const bar = section.current?.querySelector<HTMLElement>(
-        ".operation-progress i",
-      );
-      if (bar) bar.style.transform = `scaleX(${p})`;
-    };
-    import("./MachineScene")
-      .then(({ createMachineScene }) => {
-        if (disposed || !host.current) return;
-        try {
-          engine.current = createMachineScene(host.current);
-          paint.current(value.current.p);
-          setReady(true);
-        } catch {
-          setFailed(true);
+    let disposed = false,
+      started = false,
+      next = 0,
+      limit = matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? 1
+        : FRAME_COUNT;
+    const images: (HTMLImageElement | undefined)[] = [];
+    setLoaded(0);
+    shown.current = -1;
+    const el = canvas.current;
+    if (!el || !section.current) return;
+    const ctx = el.getContext("2d", { alpha: false });
+    if (!ctx) return;
+    const draw = (p: number, force = false) => {
+      const target = Math.round(p * (FRAME_COUNT - 1));
+      let index = target;
+      if (!images[index]) {
+        let nearest = images.findIndex(Boolean);
+        for (let i = 0; i < images.length; i++) {
+          if (images[i] && Math.abs(i - target) < Math.abs(nearest - target))
+            nearest = i;
         }
-      })
-      .catch(() => setFailed(true));
-    const onChange = (e: MediaQueryListEvent) => setStill(e.matches);
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    media.addEventListener("change", onChange);
+        index = nearest;
+      }
+      if (index < 0 || (!force && shown.current === index)) return;
+      shown.current = index;
+      const img = images[index];
+      if (!img) return;
+      ctx.fillStyle = "#080b10";
+      ctx.fillRect(0, 0, el.width, el.height);
+      const fit = Math.min(
+        el.width / img.naturalWidth,
+        el.height / img.naturalHeight,
+      );
+      const w = img.naturalWidth * fit,
+        h = img.naturalHeight * fit;
+      ctx.drawImage(img, (el.width - w) / 2, (el.height - h) / 2, w, h);
+      const presented = index / (FRAME_COUNT - 1);
+      const phase =
+        presented < 0.16
+          ? 0
+          : presented < 0.38
+            ? 1
+            : presented < 0.59
+              ? 2
+              : presented < 0.82
+                ? 3
+                : 4;
+      setChapter((old) => (old === phase ? old : phase));
+      if (range.current) range.current.value = String(target);
+      section.current!.dataset.frame = String(index);
+      section.current!.dataset.progress = presented.toFixed(3);
+      section.current!.dataset.phase = String(phase);
+    };
+    paint.current = draw;
+    const resize = () => {
+      const rect = el.getBoundingClientRect();
+      const dpr = Math.min(devicePixelRatio, 1.5);
+      el.width = Math.round(rect.width * dpr);
+      el.height = Math.round(rect.height * dpr);
+      draw(
+        manual.current
+          ? Number(range.current?.value || 0) / (FRAME_COUNT - 1)
+          : proxy.current.p,
+        true,
+      );
+    };
+    const sizeObserver = new ResizeObserver(resize);
+    sizeObserver.observe(el);
+    const loadNext = () => {
+      if (disposed || next >= limit) return;
+      const i = next++;
+      const img = new Image();
+      img.decoding = "async";
+      img.fetchPriority = "low";
+      img.onload = () => {
+        if (disposed) return;
+        images[i] = img;
+        setLoaded((c) => c + 1);
+        draw(
+          manual.current
+            ? Number(range.current?.value || 0) / (FRAME_COUNT - 1)
+            : proxy.current.p,
+          true,
+        );
+        loadNext();
+      };
+      img.onerror = () => {
+        if (!disposed) loadNext();
+      };
+      img.src = `${import.meta.env.BASE_URL}images/${matchMedia("(max-width: 700px)").matches ? "transfer-mobile" : "transfer"}/frame-${String(i).padStart(3, "0")}.webp`;
+    };
+    preloadFull.current = () => {
+      if (limit === FRAME_COUNT) return;
+      limit = FRAME_COUNT;
+      if (started) for (let i = 0; i < 4; i++) loadNext();
+    };
+    const preload = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting) && !started) {
+          started = true;
+          for (let i = 0; i < 4; i++) loadNext();
+          preload.disconnect();
+        }
+      },
+      { rootMargin: "600px" },
+    );
+    preload.observe(section.current);
+    resize();
+    const media = matchMedia("(prefers-reduced-motion: reduce)");
+    const preference = (e: MediaQueryListEvent) => setStill(e.matches);
+    media.addEventListener("change", preference);
     return () => {
       disposed = true;
-      media.removeEventListener("change", onChange);
-      play.current?.kill();
-      engine.current?.dispose();
-      engine.current = null;
+      sizeObserver.disconnect();
+      preload.disconnect();
+      media.removeEventListener("change", preference);
+      playback.current?.kill();
     };
   }, []);
   useEffect(() => {
     if (still) {
-      play.current?.kill();
+      playback.current?.kill();
       manual.current = false;
       setPlaying(false);
-      value.current.p = 0;
+      proxy.current.p = 0;
+      shown.current = -1;
       paint.current(0);
+      ScrollTrigger.refresh();
       return;
     }
-    const tween = gsap.to(value.current, {
+    preloadFull.current();
+    const scroll = gsap.to(proxy.current, {
       p: 1,
       ease: "none",
       onUpdate: () => {
-        if (!manual.current) paint.current(value.current.p);
+        if (!manual.current) paint.current(proxy.current.p);
       },
       scrollTrigger: {
         trigger: section.current,
-        start: () => `top top+=${innerWidth < 701 ? 64 : 72}`,
+        start: () => `top top+=${innerWidth < 701 ? 60 : 68}`,
         end: "bottom bottom",
-        scrub: 0.85,
+        scrub: 0.65,
       },
     });
-    const resumeScroll = (event: Event) => {
+    const resume = (event: Event) => {
       if (
         event instanceof KeyboardEvent &&
-        event.target instanceof Element &&
-        event.target.closest("button, input, textarea, select, a")
-      )
-        return;
-      if (
-        event instanceof KeyboardEvent &&
-        ![
-          "ArrowDown",
-          "ArrowUp",
-          "PageDown",
-          "PageUp",
-          "Home",
-          "End",
-          " ",
-        ].includes(event.key)
+        ((event.target instanceof Element &&
+          event.target.closest("button,input,a")) ||
+          ![
+            "ArrowDown",
+            "ArrowUp",
+            "PageDown",
+            "PageUp",
+            "Home",
+            "End",
+            " ",
+          ].includes(event.key))
       )
         return;
       if (!manual.current) return;
-      play.current?.kill();
       manual.current = false;
+      playback.current?.kill();
       setPlaying(false);
-      paint.current(value.current.p);
+      paint.current(proxy.current.p);
     };
-    window.addEventListener("wheel", resumeScroll, { passive: true });
-    window.addEventListener("touchmove", resumeScroll, { passive: true });
-    window.addEventListener("keydown", resumeScroll);
-    window.addEventListener("hashchange", resumeScroll);
+    window.addEventListener("wheel", resume, { passive: true });
+    window.addEventListener("touchmove", resume, { passive: true });
+    window.addEventListener("hashchange", resume);
+    window.addEventListener("keydown", resume);
+    ScrollTrigger.refresh();
     return () => {
-      window.removeEventListener("wheel", resumeScroll);
-      window.removeEventListener("touchmove", resumeScroll);
-      window.removeEventListener("keydown", resumeScroll);
-      window.removeEventListener("hashchange", resumeScroll);
-      tween.scrollTrigger?.kill();
-      tween.kill();
+      scroll.scrollTrigger?.kill();
+      scroll.kill();
+      window.removeEventListener("wheel", resume);
+      window.removeEventListener("touchmove", resume);
+      window.removeEventListener("hashchange", resume);
+      window.removeEventListener("keydown", resume);
     };
-  }, [still, ready]);
-  function togglePlayback() {
+  }, [still]);
+  function watch() {
     if (playing) {
-      play.current?.kill();
-      manual.current = true;
+      playback.current?.kill();
       setPlaying(false);
       return;
     }
     manual.current = true;
     setPlaying(true);
-    const frame = { p: 0 };
+    const position = { p: 0 };
     paint.current(0);
-    play.current = gsap.to(frame, {
+    playback.current = gsap.to(position, {
       p: 1,
-      duration: 15,
+      duration: 6,
       ease: "none",
-      onUpdate: () => paint.current(frame.p),
-      onComplete: () => {
-        setPlaying(false);
-        manual.current = true;
-      },
+      onUpdate: () => paint.current(position.p),
+      onComplete: () => setPlaying(false),
     });
   }
   return (
-    <section
-      ref={section}
-      className={`product-reveal spatial-reveal ${still ? "still-view" : ""}`}
-      aria-label="Operating pipetting machine concept"
-    >
-      <div className="product-stage spatial-stage">
-        <div className="spatial-heading" aria-live="off">
-          {captions.map(([tag, line1, line2, description], i) => (
-            <div
-              key={tag}
-              className={`operation-caption ${i === 0 ? "initial" : ""}`}
-            >
-              <p className="eyebrow">{tag}</p>
-              {i === 0 ? (
-                <h1>
-                  {line1}
-                  <br />
-                  <span>{line2}</span>
-                </h1>
-              ) : (
-                <h2>
-                  {line1}
-                  <br />
-                  <span>{line2}</span>
-                </h2>
-              )}
-              <p className="operation-description">{description}</p>
-              {i === 4 && (
-                <a className="spatial-studio-link" href="#studio">
-                  Experience Studio ↗
-                </a>
-              )}
-            </div>
-          ))}
+    <>
+      <section className="launch-hero" aria-labelledby="launch-title">
+        <div className="launch-copy">
+          <p className="eyebrow">PIPEOMATIC / BME 100 · GROUP 2</p>
+          <h1 id="launch-title">
+            Less repetition.
+            <br />
+            <span>More discovery.</span>
+          </h1>
+          <p className="launch-description">
+            A vision for more accessible laboratory automation.
+          </p>
+          <div className="launch-actions">
+            <a href="#studio" className="button launch-button">
+              Experience Studio <span>↗</span>
+            </a>
+            <a href="#design-sequence">
+              Follow the design <span>↓</span>
+            </a>
+          </div>
         </div>
-        <div
-          ref={host}
-          className="machine-viewport"
-          role="img"
-          aria-label="Original animated 3D pipetting concept. A carriage moves between source and destination wells, lowers its tip, and illustrates aspiration and dispensing. Not a hardware or fluid simulation."
-        />
-        {(!ready || failed) && (
-          <div className="spatial-fallback">
+        <figure className="launch-portrait">
+          <img
+            src={`${import.meta.env.BASE_URL}images/studio-portrait.webp`}
+            alt="Studio-rendered full view of the proposed PipeOmatiC gantry system, with a single pipette, a 96-well plate, a tip rack, and a disposal opening"
+            width="2200"
+            height="1500"
+            fetchPriority="high"
+          />
+          <figcaption>
+            DESIGN VISUALIZATION{" "}
+            <span>Proposed system · Not built or validated hardware</span>
+          </figcaption>
+        </figure>
+      </section>
+      <section
+        ref={section}
+        className={`design-sequence ${still ? "sequence-still" : ""}`}
+        id="design-sequence"
+        aria-label="Illustrated pipetting transfer"
+      >
+        <div className="sequence-stage">
+          <div className="sequence-title">
+            <p className="eyebrow">THE DESIGN IN MOTION</p>
+            <h2>
+              From one well.
+              <br />
+              <span>To the next.</span>
+            </h2>
+          </div>
+          <div className="sequence-media">
             <img
-              src={`${import.meta.env.BASE_URL}images/pipeomatic-concept-studio.jpg`}
-              alt="AI-generated illustrative pipetting machine concept"
+              src={`${import.meta.env.BASE_URL}images/transfer/frame-000.webp`}
+              alt=""
+              aria-hidden="true"
             />
-            <p>
-              {failed
-                ? "3D is unavailable on this device. Explore the software concept below."
-                : "Preparing the instrument…"}
-            </p>
+            <canvas
+              ref={canvas}
+              role="img"
+              aria-label="Rendered transfer sequence. The same pipette lowers to a source, lifts and travels, then lowers to a destination. Illustrative motion, not a physical robot simulation."
+            />
           </div>
-        )}
-        <div className="spatial-vignette" aria-hidden="true" />
-        <div className="operation-controls">
-          <div
-            className="operation-steps"
-            aria-label="Illustrated transfer sequence"
-          >
-            {["Aspirate", "Travel", "Dispense", "Retract"].map((s, i) => (
-              <span className="operation-step" key={s}>
-                <b>0{i + 1}</b>
-                {s}
-              </span>
-            ))}
+          <div className="sequence-caption">
+            <span>{chapters[chapter].label}</span>
+            <h3>{chapters[chapter].title}</h3>
+            <p>{chapters[chapter].text}</p>
           </div>
-          <div className="operation-actions">
+          <div className="sequence-control">
             <button
-              onClick={togglePlayback}
-              disabled={!ready || failed || still}
+              onClick={watch}
+              disabled={!motionReady || still}
               aria-pressed={playing}
             >
-              {playing ? "Pause cycle" : "Play transfer"}
+              {playing
+                ? "Pause sequence"
+                : motionReady
+                  ? "Watch the sequence"
+                  : "Preparing motion…"}{" "}
               <span aria-hidden="true">{playing ? "Ⅱ" : "▷"}</span>
             </button>
+            <input
+              ref={range}
+              type="range"
+              min="0"
+              max={FRAME_COUNT - 1}
+              defaultValue="0"
+              aria-label="Transfer sequence position"
+              disabled={!motionReady || still}
+              onChange={(e) => {
+                manual.current = true;
+                playback.current?.kill();
+                setPlaying(false);
+                paint.current(Number(e.target.value) / (FRAME_COUNT - 1));
+              }}
+            />
             <button onClick={() => setStill(!still)} aria-pressed={still}>
               {still ? "Enable motion" : "Still view"}
             </button>
           </div>
-          <div className="operation-progress" aria-hidden="true">
-            <i />
+          <div className="sequence-foot">
+            <span>Rendered concept · Illustrative transfer</span>
+            <span className="scroll-instruction">
+              {still ? "STATIC VIEW" : "SCROLL TO EXPLORE"}
+            </span>
+            <a href="#idea">Continue to the idea ↓</a>
           </div>
         </div>
-        <div className="reveal-footer">
-          <span className="render-disclosure">
-            {failed ? "AI-generated concept image" : "Interactive 3D concept"}
-            <span>Illustrative motion · Not built or validated hardware</span>
-          </span>
-          <span className="spatial-scroll-hint">
-            {still ? "STATIC PRESENTATION" : "SCROLL TO OPERATE"}
-          </span>
-          <a className="reveal-skip" href="#idea">
-            Skip to the idea ↓
-          </a>
-        </div>
-      </div>
-      {still && (
-        <div className="spatial-static-story">
-          <p>
-            The proposed workflow selects a source, lifts the pipette, travels
-            to a destination, and dispenses. This geometric animation
-            illustrates that intent. Hardware motion, clearances and volume
-            accuracy require engineering validation.
-          </p>
-          <a href="#studio" className="button primary">
-            Experience Studio ↗
-          </a>
-        </div>
-      )}
-    </section>
+        {still && (
+          <div className="sequence-static-note">
+            <p>
+              The proposed workflow draws liquid from a source, lifts the
+              pipette, travels, and dispenses into a destination. This rendered
+              sequence illustrates that intent. Mechanical dimensions, deck
+              clearance, volume accuracy, tip pickup and disposal require
+              further development and validation.
+            </p>
+            <a href="#studio">Explore Studio ↗</a>
+          </div>
+        )}
+      </section>
+    </>
   );
 }

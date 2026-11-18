@@ -1,73 +1,56 @@
 # PipeOmatiC.io
 
-An original BME 100 Group 2 showcase. Vite, React, TypeScript, Tailwind CSS, and GSAP. Static files only; no server, analytics, accounts, or robot connection.
+An original BME 100 Group 2 concept showcase, hosted as a static site on GitHub Pages.
 
-## Run locally
+Live site: https://tofu-coder.github.io/pipeomatic/
 
-Requires Node.js 22.12+ (Node 22 LTS recommended) and npm.
+## Local editing
+
+Requires Node.js 22.12+ and npm.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open the Local address printed by Vite. To verify the production version:
+The local server is only an editing preview. GitHub hosts the published site independently of your Mac.
 
-```sh
-npm run build
-npm run preview
-```
-
-## Publish free with GitHub Pages
-
-Create an empty **public** GitHub repository named `pipeomatic` (do not initialize it with a README). In Terminal, from this project folder, replace `YOUR_USERNAME` with your GitHub account:
-
-```sh
-git init -b main
-git add .
-git commit -m "Build PipeOmatiC showcase"
-git remote add origin https://github.com/YOUR_USERNAME/pipeomatic.git
-git push -u origin main
-```
-
-In the repository, choose **Settings → Pages → Build and deployment → Source → GitHub Actions**. Open **Actions → Deploy to GitHub Pages → Run workflow** if the first push happened before Pages was enabled. The workflow’s environment link shows the published address, normally `https://YOUR_USERNAME.github.io/pipeomatic/`.
-
-Every future push to `main` rebuilds and publishes the site. `npm ci` uses the committed lockfile. The workflow gets the base path from GitHub’s `configure-pages` action, supporting project repositories, account sites, and configured custom domains. PDF links use the same base path.
-
-To manually test a project path on macOS:
+## Production check
 
 ```sh
 BASE_PATH=/pipeomatic/ npm run build
 BASE_PATH=/pipeomatic/ npm run preview
 ```
 
-Open the preview URL with `/pipeomatic/` appended. Ordinary local development uses `/`.
+Open the printed address with `/pipeomatic/` appended. For root-path builds, omit `BASE_PATH` on both commands.
 
-The name PipeOmatiC.io does not require a custom domain. GitHub Pages provides the free `github.io` address. No CNAME is included; configure a custom domain only if you own it.
+## Publish changes
 
-## Content and implementation boundaries
+```sh
+git add .
+git commit -m "Update PipeOmatiC showcase"
+git push origin main
+```
 
-- All nine team members follow the elevator pitch. No roles were inferred.
-- Original SVG gantry schematics interpret the slide concepts; they are not fabricated hardware, engineering CAD, or a validated model.
-- Studio implements a selectable 8 × 12 plate, distinct-well checks, a 1–200 µL demo input range, four-step preview, reset, and clipboard JSON export. The range is illustrative, not a hardware specification.
-- Selection and volume remain locked during playback. The preview reports completion without implying physical execution. Clipboard failure produces an on-page message.
-- Python execution, OT-2 integration, Isaac Sim work, cost analysis, and bench validation are future work. No measured performance is claimed.
-- Motion respects the operating system’s reduced-motion preference. Navigation, inputs, and wells support keyboard interaction, visible focus, labels, and completion announcements.
+The existing GitHub Actions workflow builds and publishes `dist/`. It gets the correct base path from GitHub Pages metadata. No backend, persistent server, paid hosting, account system, or analytics are required.
 
-## Files
+## Presentation
 
-`src/main.tsx`: story, source links, team, schematic, Studio interaction.
+The site uses a consistent set of studio renders and a 144-frame rendered transfer sequence. Images come from one original Blender source scene, including the 8 × 12 plate geometry, pipette, rack, gantry, and fixtures. Rendering happens during asset creation; visitors receive compressed static images. No real-time 3D engine is shipped.
 
-`src/style.css`: responsive visual system and reduced-motion rules.
+The sequence supports scroll scrubbing, playback, manual position control, and Still view. Reduced-motion preferences enable Still view automatically. The detail gallery supports keyboard arrow navigation. The interactive Studio demo implements source/destination selection, volume checks, a transfer preview, reset and JSON copy.
 
-`.github/workflows/deploy.yml`: GitHub Pages build and deployment.
+The artwork illustrates a proposed system. It is not engineering CAD, clearance validation, fluid simulation or proof of fabricated hardware. The sequence begins with an attached tip; automated tip pickup/disposal, Python execution, hardware integration and bench measurements remain future work. No precision, savings or performance results are claimed.
 
-## Checks performed
+## Source files
 
-Production TypeScript/Vite build; root and `/pipeomatic/` base-path builds; browser selection and volume validation; transfer completion; desktop/mobile visual review. See `QA.md` for details.
+- `src/ProductReveal.tsx`: opening portrait and rendered transfer experience.
+- `src/product-reveal.css`: that presentation’s single responsive stylesheet.
+- `src/main.tsx`: gallery, Studio, engineering, team and references.
+- `src/style.css`: the shared visual system.
+- `art/pipeomatic-studio.blend`: original source scene.
+- `art/render_scene.py`: reproducible scene and image creation.
+- `public/images/`: production artwork and compressed motion frames.
+- `public/documents/`: the recovered elevator pitch and pre-meeting PDFs.
 
-## Spatial machine experience
-
-The opening is an original real-time Three.js scene, with physically based materials, a studio environment, shadows, separately moving gantry/carriage/pipette parts, 96 geometric wells, and illustrative liquid indicators. Scrolling drives the cycle and a centered camera orbit. Play transfer runs the same sequence without scrolling; Still view disables the long scroll sequence and offers a static explanation. System reduced-motion preferences enable Still view by default.
-
-This is an illustrative geometric animation, not validated CAD, robotic control, clearance simulation or fluid physics. Tip pickup and disposal remain part of the proposed full workflow; this scene starts with an attached tip and illustrates the transfer segment. The prior AI-generated render remains only as a fallback if WebGL is unavailable.
+All nine team names follow the supplied elevator pitch. See `ASSET-NOTES.md` for asset provenance and `QA.md` for verification.

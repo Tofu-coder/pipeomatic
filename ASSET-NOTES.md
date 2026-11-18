@@ -1,20 +1,27 @@
-# Current 3D presentation
+# Artwork and consistency
 
-The main product presentation is now an original Three.js geometric scene authored in `src/MachineScene.ts`, not a generated image. It uses actual independent geometry for the frame, rails, carriage, pipette, tip, 96-well plate, rack, and waste opening. Materials, image-based studio lighting, lights, shadows and a perspective camera render in the visitor's browser. No 3D asset or external environment file is downloaded.
+All current product imagery is rendered from one original source scene in Blender 4.5.16. No Apple, Meta or Lusion imagery, logos, models, fonts or code are reused. Those sites were reviewed as visual references for image scale, pacing, product detail and restrained typography.
 
-The motion illustrates aspiration, lift, horizontal travel, dispense, and retraction. It is not engineering CAD, validated clearance checking, fluid simulation or hardware operation. The former generated image is retained only as an automatic no-WebGL fallback. Its original prompt and provenance follow.
+The low-detail real-time model, Three.js dependency, original SVG machine and earlier generated product image have been removed from the current implementation. The source PDFs retain their original supplied content.
 
-# Product asset history
+## Current asset set
 
-The previous website opening used a generated concept visualization, created with the built-in image generation tool. The original PNG was exported as a JPEG for delivery (about a few hundred KB). This is an artistic interpretation of the team's gantry concept, not CAD or a photograph of built hardware. The well geometry in the render is illustrative; the actual interactive interface separately implements exactly 96 wells.
+- `studio-portrait.webp`: full-machine portrait with transparency and a contact shadow.
+- `studio-hero.jpg`: photographic studio composition for the framed detail gallery.
+- `studio-detail.jpg`: mechanical detail from the same model.
+- `studio-macro.jpg`: pipette/plate close-up from the same model.
+- `transfer/frame-000.webp` through `frame-143.webp`: 144 frames of one continuous, deterministic transfer illustration.
 
-Asset: `public/images/pipeomatic-concept-studio.jpg`.
+All frames retain the same geometry and fixtures. The plate and tip rack each contain an 8 × 12 arrangement. Liquid indicators, pipette travel and camera motion follow the source script rather than independently generated frames. The artwork contains no measured engineering or performance claims.
 
-The camera sequence pans and scales this image with GSAP while crossfading editorial chapters and lighting overlays. It does not claim to be a physically simulated robot or an interactive 3D model. Motion reverses with scrolling. Reduced motion replaces the extended sequence with a static view and an accessible explanation.
+## Reproducibility
 
-## Generation prompt
+`art/pipeomatic-studio.blend` contains the source scene. `art/render_scene.py` builds the geometry, materials, optics, studio lights and transfer poses. It accepts `test`, `hero`, `details`, `gallery`, or `sequence` after Blender’s `--` separator. Blender is needed only to regenerate imagery, not to build or serve the site.
 
-Use case: product-mockup. Asset type: premium website cinematic product hero, landscape 16:9, high resolution.
-Create an exceptionally photorealistic industrial design concept render of a compact benchtop automated pipetting machine. This is a proposed student engineering concept, not a commercial product. Original design based on an open rectangular Cartesian gantry: four satin bead-blasted aluminum structural columns, precision linear rails, a brushed silver crossbeam, black cable chain, one vertical single-channel pipette carriage with a single transparent narrow disposable pipette tip hovering above a white standard 8-row by 12-column 96-well microplate. A blue disposable tip rack at left and a modest recessed waste receptacle at right on a dark anodized aluminum deck. Include realistic countersunk fasteners, machined joints, linear bearings, subtle material grain, precise mechanical details, restrained elegant geometry. No robotic arm, no multi-channel pipette, no touchscreen, no invented logo or text.
-Scene: seamless near-black charcoal studio backdrop (#080a0d), no environment, no room. Whole instrument centered, entirely visible with generous negative space on all sides and extra dark space at top. Front three-quarter camera from slightly above deck height, compelling elegant perspective without wide-angle distortion. Instrument fills approximately 65 percent of image width, 70 percent image height. On a subtly reflective dark ground with a delicate contact shadow.
-Lighting: cinematic large softbox key from upper left, thin cool-white rim on right, very subtle ice-blue accents reflected in silver, deep rich blacks but legible functional details. Premium launch photography, refined physical realism, ray-traced metal reflections, very sharp pipette and plate, smooth tonal falloff. Not futuristic fantasy, not illustration, not cartoon, no labels, no graphics, no watermarks.
+The portrait is rendered at 2200 × 1500 with 80 Cycles samples. Gallery details use 1600 × 1200 and 64 samples. Transfer frames use 1024 × 720 and 24 samples, with denoising. Production frames are WebP, quality 82. Their total transfer size is approximately a few megabytes.
+
+## Scope
+
+The model is an artistic interpretation of the team’s proposed open-gantry system. Dimensions, material choices, fixture fit, plate compatibility and clearances have not been validated. It is not a photograph of an existing prototype or a physical fluid simulation. The sequence starts with a tip attached; pickup and disposal are future work described separately in the engineering story.
+
+Phone motion frames are resized to 720 × 506 from the same source frames. Alpha compression is set to 70. The same 144 poses play over six seconds or scrub with scrolling.
