@@ -276,10 +276,10 @@ export default function ProductReveal() {
         </div>
         <figure className="launch-portrait">
           <img
-            src={`${import.meta.env.BASE_URL}images/studio-portrait.webp`}
-            alt="Studio-rendered full view of the proposed PipeOmatiC gantry system, with a single pipette, a 96-well plate, a tip rack, and a disposal opening"
-            width="2200"
-            height="1500"
+            src={`${import.meta.env.BASE_URL}images/studio-opening.jpg`}
+            alt="AI-generated concept visualization of the proposed PipeOmatiC gantry system, with a single pipette above a 96-well plate and a blue tip rack"
+            width="1672"
+            height="941"
             fetchPriority="high"
           />
           <figcaption>
