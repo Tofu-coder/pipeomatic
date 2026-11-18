@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import "./product-reveal.css";
+import { samplePipetteMotion } from "./pipette-motion";
 gsap.registerPlugin(ScrollTrigger);
 const FRAME_COUNT = 1001;
 const chapters = [
@@ -13,18 +14,6 @@ const chapters = [
 ];
 // Layered illustration of the proposed mechanism, using the approved photographic still.
 // Distances and liquid indicators communicate the concept; they are not calibrated physics.
-const strokes = [
-  { p: 0, x: 0, z: -72, liquid: 0 },
-  { p: .12, x: 0, z: -72, liquid: 0 },
-  { p: .23, x: 0, z: 0, liquid: 0 },
-  { p: .32, x: 0, z: 0, liquid: 1 },
-  { p: .43, x: 0, z: -72, liquid: 1 },
-  { p: .59, x: 113, z: -72, liquid: 1 },
-  { p: .69, x: 113, z: 0, liquid: 1 },
-  { p: .79, x: 113, z: 0, liquid: 0 },
-  { p: .91, x: 113, z: -72, liquid: 0 },
-  { p: 1, x: 113, z: -72, liquid: 0 },
-];
 const carriageOutline = [
   [883,176],[913,173],[913,157],[929,154],[929,136],[943,136],
   [944,155],[978,157],[983,172],[983,216],[960,230],[940,230],
@@ -66,10 +55,28 @@ export default function ProductReveal() {
     if (!el || !section.current) return;
     const ctx = el.getContext("2d", { alpha: false });
     if (!ctx) return;
+    // Rasterize each masked layer once. Subpixel feathering avoids a hard paper edge.
+    const sprite = (outline: number[][]) => {
+      const output = document.createElement("canvas");
+      output.width = 1672; output.height = 941;
+      const layer = output.getContext("2d")!;
+      const mask = document.createElement("canvas");
+      mask.width = output.width; mask.height = output.height;
+      const edge = mask.getContext("2d")!;
+      edge.filter = "blur(0.55px)";
+      edge.beginPath();
+      outline.forEach(([px, py], i) => i ? edge.lineTo(px, py) : edge.moveTo(px, py));
+      edge.closePath(); edge.fill();
+      layer.drawImage(img, 0, 0);
+      layer.globalCompositeOperation = "destination-in";
+      layer.drawImage(mask, 0, 0);
+      return output;
+    };
+    let carriageSprite: HTMLCanvasElement, pipetteSprite: HTMLCanvasElement;
     const draw = (p: number, force = false) => {
       const presented = Math.max(0, Math.min(1, p));
       const target = Math.round(presented * (FRAME_COUNT - 1));
-      if (!img.complete || !img.naturalWidth || !base.complete || !base.naturalWidth || (!force && shown.current === presented)) return;
+      if (!img.complete || !img.naturalWidth || !base.complete || !base.naturalWidth || !carriageSprite || !pipetteSprite || (!force && shown.current === presented)) return;
       shown.current = presented;
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
@@ -79,16 +86,9 @@ export default function ProductReveal() {
         el.width / img.naturalWidth,
         el.height / img.naturalHeight,
       );
-      const endIndex = strokes.findIndex((stroke) => stroke.p > presented);
-      const end = strokes[endIndex < 0 ? strokes.length - 1 : endIndex];
-      const start = strokes[Math.max(0, (endIndex < 0 ? strokes.length - 1 : endIndex) - 1)];
-      const t = Math.min(1, (presented - start.p) / (end.p - start.p));
-      const ease = t * t * (3 - 2 * t);
-      const mix = (a: number, b: number) => a + (b - a) * ease;
-      const x = mix(start.x, end.x), z = mix(start.z, end.z);
-      const liquid = mix(start.liquid, end.liquid);
+      const { x, z, liquid } = samplePipetteMotion(presented);
       // A restrained optical push supports the mechanism, rather than replacing its motion.
-      const scale = 1 + .08 * Math.sin(presented * Math.PI);
+      const scale = 1 + .035 * (1 - Math.cos(presented * Math.PI * 2)) / 2;
       const unit = fit * scale;
       ctx.save();
       ctx.translate(el.width / 2 - img.naturalWidth * unit / 2,
@@ -106,33 +106,49 @@ export default function ProductReveal() {
       ctx.strokeStyle = "#4b5159";
       ctx.lineWidth = 1.3;
       ctx.stroke();
-      const layer = (outline: number[][], dx: number, dy: number) => {
-        ctx.save();
-        ctx.translate(dx, dy);
-        ctx.beginPath();
-        outline.forEach(([px, py], i) => i ? ctx.lineTo(px, py) : ctx.moveTo(px, py));
-        ctx.closePath();
-        ctx.clip();
-        ctx.drawImage(img, 0, 0);
-        ctx.restore();
+      // Contact and ambient shadows tie the moving head to the rail and plate.
+      const proximity = 1 + z / 72;
+      ctx.save();
+      ctx.translate(920 + x, 641 + x * .04);
+      ctx.scale(1, .28);
+      const shadow = ctx.createRadialGradient(0, 0, 1, 0, 0, 24 - proximity * 12);
+      shadow.addColorStop(0, `rgba(8,16,23,${.10 + proximity * .22})`);
+      shadow.addColorStop(1, "rgba(8,16,23,0)");
+      ctx.fillStyle = shadow;
+      ctx.fillRect(-28, -28, 56, 56);
+      ctx.restore();
+      ctx.save();
+      ctx.shadowColor = "#0009";
+      ctx.shadowBlur = 5;
+      ctx.shadowOffsetX = 4;
+      ctx.shadowOffsetY = 3;
+      ctx.fillStyle = "#10182055";
+      ctx.fillRect(859 + x, 294 + x * .04, 107, 30);
+      ctx.restore();
+      const layer = (sprite: HTMLCanvasElement, dx: number, dy: number) => {
+        ctx.drawImage(sprite, dx, dy);
       };
       // The lower spindle telescopes into the housing during the Z lift.
-      layer(pipetteOutline, x, z + x * .04);
-      layer(carriageOutline, x, x * .04);
+      layer(pipetteSprite, x, z + x * .04);
+      layer(carriageSprite, x, x * .04);
       // Small, physically located liquid cues; no decorative floating droplets.
       if (liquid > .01) {
         ctx.save();
-        ctx.globalAlpha = liquid * .65;
+        ctx.globalAlpha = liquid * .38;
         ctx.beginPath();
         ctx.moveTo(911 + x, 592 + z + x * .04);
         ctx.lineTo(918 + x, 592 + z + x * .04);
         ctx.lineTo(915 + x, 627 + z + x * .04);
         ctx.closePath();
-        ctx.fillStyle = "#73bfd3";
+        const meniscus = ctx.createLinearGradient(911 + x, 0, 919 + x, 0);
+        meniscus.addColorStop(0, "#386a7b");
+        meniscus.addColorStop(.45, "#a3d8e1");
+        meniscus.addColorStop(1, "#487786");
+        ctx.fillStyle = meniscus;
         ctx.fill();
         ctx.restore();
       }
-      if (presented > .69) {
+      if (presented > .79) {
         ctx.save();
         ctx.globalAlpha = Math.max(0, 1 - liquid) * .55;
         ctx.beginPath();
@@ -141,15 +157,26 @@ export default function ProductReveal() {
         ctx.fill();
         ctx.restore();
       }
+      // The near rim occludes the last millimetres of tip at insertion depth.
+      if (z > -8) {
+        ctx.save();
+        ctx.globalAlpha = (z + 8) / 8 * .65;
+        ctx.beginPath();
+        ctx.ellipse(914 + x, 638 + x * .04, 9, 3.5, .025, 0, Math.PI);
+        ctx.strokeStyle = "#c2ccd1";
+        ctx.lineWidth = 1.25;
+        ctx.stroke();
+        ctx.restore();
+      }
       ctx.restore();
       const phase =
         presented < 0.16
           ? 0
-          : presented < 0.35
+          : presented < 0.38
             ? 1
-            : presented < 0.63
+            : presented < 0.66
               ? 2
-              : presented < 0.84
+              : presented < 0.90
                 ? 3
                 : 4;
       setChapter((old) => (old === phase ? old : phase));
@@ -178,7 +205,12 @@ export default function ProductReveal() {
       setLoaded((count) => count + 1);
       draw(proxy.current.p, true);
     };
-    img.onload = ready;
+    img.onload = () => {
+      if (disposed) return;
+      carriageSprite = sprite(carriageOutline);
+      pipetteSprite = sprite(pipetteOutline);
+      ready();
+    };
     base.onload = ready;
     img.src = `${import.meta.env.BASE_URL}images/studio-opening.jpg`;
     base.src = `${import.meta.env.BASE_URL}images/studio-motion-base.jpg`;
@@ -265,7 +297,7 @@ export default function ProductReveal() {
     paint.current(0);
     playback.current = gsap.to(position, {
       p: 1,
-      duration: 12,
+      duration: 14,
       ease: "none",
       onUpdate: () => paint.current(position.p),
       onComplete: () => setPlaying(false),
