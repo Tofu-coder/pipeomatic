@@ -5,19 +5,36 @@ import "./product-reveal.css";
 gsap.registerPlugin(ScrollTrigger);
 const FRAME_COUNT = 1001;
 const chapters = [
-  { label: "01 / THE INSTRUMENT", title: "One focused idea.", text: "A single pipette. A familiar plate. A clearer workflow." },
-  { label: "02 / THE PIPETTE", title: "Small movements. Big purpose.", text: "A proposed single-pipette system, designed around deliberate transfers." },
-  { label: "03 / THE DECK", title: "Every well has a place.", text: "A 96-well plate and a dedicated tip rack give the concept its starting point." },
-  { label: "04 / THE STRUCTURE", title: "A path above the plate.", text: "An open gantry concept. Alignment and clearance remain to be validated." },
-  { label: "05 / EXPLORE", title: "Now, make it yours.", text: "Explore source, destination and volume in the Studio demo." },
+  { label: "01 / APPROACH", title: "A deliberate beginning.", text: "The pipette aligns above the source well." },
+  { label: "02 / ASPIRATE", title: "Down to the detail.", text: "A controlled vertical stroke. An illustrative liquid pickup." },
+  { label: "03 / TRANSFER", title: "Lift. Travel. Settle.", text: "The tip clears the plate before the carriage moves to its destination." },
+  { label: "04 / DISPENSE", title: "One well to the next.", text: "The pipette lowers again. The liquid indicator shifts to the destination." },
+  { label: "05 / COMPLETE", title: "Ready for what’s next.", text: "Explore your own source, destination and volume in Studio." },
 ];
-// Camera crops of one approved still; no generated frames or simulated hardware motion.
-const shots = [
-  { p: 0, scale: 1, x: .5, y: .5 },
-  { p: .27, scale: 1.5, x: .55, y: .49 },
-  { p: .52, scale: 1.5, x: .50, y: .70 },
-  { p: .76, scale: 1.4, x: .54, y: .32 },
-  { p: 1, scale: 1, x: .5, y: .5 },
+// Layered illustration of the proposed mechanism, using the approved photographic still.
+// Distances and liquid indicators communicate the concept; they are not calibrated physics.
+const strokes = [
+  { p: 0, x: 0, z: -72, liquid: 0 },
+  { p: .12, x: 0, z: -72, liquid: 0 },
+  { p: .23, x: 0, z: 0, liquid: 0 },
+  { p: .32, x: 0, z: 0, liquid: 1 },
+  { p: .43, x: 0, z: -72, liquid: 1 },
+  { p: .59, x: 113, z: -72, liquid: 1 },
+  { p: .69, x: 113, z: 0, liquid: 1 },
+  { p: .79, x: 113, z: 0, liquid: 0 },
+  { p: .91, x: 113, z: -72, liquid: 0 },
+  { p: 1, x: 113, z: -72, liquid: 0 },
+];
+const carriageOutline = [
+  [883,176],[913,173],[913,157],[929,154],[929,136],[943,136],
+  [944,155],[978,157],[983,172],[983,216],[960,230],[940,230],
+  [940,278],[958,281],[981,292],[981,383],[960,408],[856,403],
+  [849,391],[849,296],[864,281],[892,278],[892,230],[883,226],
+];
+const pipetteOutline = [
+  [893,405],[938,407],[938,523],[930,531],[927,550],[923,559],
+  [921,594],[916,638],[912,638],[907,594],[905,559],[901,550],
+  [902,531],[893,523],
 ];
 export default function ProductReveal() {
   const section = useRef<HTMLElement>(null),
@@ -36,11 +53,13 @@ export default function ProductReveal() {
     [still, setStill] = useState(
       () => matchMedia("(prefers-reduced-motion: reduce)").matches,
     );
-  const motionReady = loaded === 1;
+  const motionReady = loaded === 2;
   useLayoutEffect(() => {
     let disposed = false;
     const img = new Image();
     img.decoding = "async";
+    const base = new Image();
+    base.decoding = "async";
     setLoaded(0);
     shown.current = -1;
     const el = canvas.current;
@@ -50,7 +69,7 @@ export default function ProductReveal() {
     const draw = (p: number, force = false) => {
       const presented = Math.max(0, Math.min(1, p));
       const target = Math.round(presented * (FRAME_COUNT - 1));
-      if (!img.complete || !img.naturalWidth || (!force && shown.current === presented)) return;
+      if (!img.complete || !img.naturalWidth || !base.complete || !base.naturalWidth || (!force && shown.current === presented)) return;
       shown.current = presented;
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
@@ -60,25 +79,77 @@ export default function ProductReveal() {
         el.width / img.naturalWidth,
         el.height / img.naturalHeight,
       );
-      const nextShot = shots.findIndex((shot) => shot.p > presented);
-      const end = shots[nextShot < 0 ? shots.length - 1 : nextShot];
-      const start = shots[Math.max(0, (nextShot < 0 ? shots.length - 1 : nextShot) - 1)];
+      const endIndex = strokes.findIndex((stroke) => stroke.p > presented);
+      const end = strokes[endIndex < 0 ? strokes.length - 1 : endIndex];
+      const start = strokes[Math.max(0, (endIndex < 0 ? strokes.length - 1 : endIndex) - 1)];
       const t = Math.min(1, (presented - start.p) / (end.p - start.p));
       const ease = t * t * (3 - 2 * t);
       const mix = (a: number, b: number) => a + (b - a) * ease;
-      const scale = mix(start.scale, end.scale);
-      const w = img.naturalWidth * fit * scale;
-      const h = img.naturalHeight * fit * scale;
-      ctx.drawImage(img, el.width / 2 - mix(start.x, end.x) * w,
-        el.height / 2 - mix(start.y, end.y) * h, w, h);
+      const x = mix(start.x, end.x), z = mix(start.z, end.z);
+      const liquid = mix(start.liquid, end.liquid);
+      // A restrained optical push supports the mechanism, rather than replacing its motion.
+      const scale = 1 + .08 * Math.sin(presented * Math.PI);
+      const unit = fit * scale;
+      ctx.save();
+      ctx.translate(el.width / 2 - img.naturalWidth * unit / 2,
+        el.height / 2 - img.naturalHeight * unit / 2);
+      ctx.scale(unit, unit);
+      ctx.drawImage(base, 0, 0, img.naturalWidth, img.naturalHeight);
+      // Flexible cable follows the carriage; the structural frame and labware stay fixed.
+      ctx.beginPath();
+      ctx.moveTo(937, 232);
+      ctx.bezierCurveTo(952 + x * .25, 255, 951 + x * .7, 221, 952 + x, 203 + x * .04);
+      ctx.strokeStyle = "#12161b";
+      ctx.lineWidth = 18;
+      ctx.lineCap = "round";
+      ctx.stroke();
+      ctx.strokeStyle = "#4b5159";
+      ctx.lineWidth = 1.3;
+      ctx.stroke();
+      const layer = (outline: number[][], dx: number, dy: number) => {
+        ctx.save();
+        ctx.translate(dx, dy);
+        ctx.beginPath();
+        outline.forEach(([px, py], i) => i ? ctx.lineTo(px, py) : ctx.moveTo(px, py));
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(img, 0, 0);
+        ctx.restore();
+      };
+      // The lower spindle telescopes into the housing during the Z lift.
+      layer(pipetteOutline, x, z + x * .04);
+      layer(carriageOutline, x, x * .04);
+      // Small, physically located liquid cues; no decorative floating droplets.
+      if (liquid > .01) {
+        ctx.save();
+        ctx.globalAlpha = liquid * .65;
+        ctx.beginPath();
+        ctx.moveTo(911 + x, 592 + z + x * .04);
+        ctx.lineTo(918 + x, 592 + z + x * .04);
+        ctx.lineTo(915 + x, 627 + z + x * .04);
+        ctx.closePath();
+        ctx.fillStyle = "#73bfd3";
+        ctx.fill();
+        ctx.restore();
+      }
+      if (presented > .69) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, 1 - liquid) * .55;
+        ctx.beginPath();
+        ctx.ellipse(1027, 643, 8.5, 3.4, .025, 0, Math.PI * 2);
+        ctx.fillStyle = "#5aa4b9";
+        ctx.fill();
+        ctx.restore();
+      }
+      ctx.restore();
       const phase =
         presented < 0.16
           ? 0
-          : presented < 0.38
+          : presented < 0.35
             ? 1
-            : presented < 0.59
+            : presented < 0.63
               ? 2
-              : presented < 0.82
+              : presented < 0.84
                 ? 3
                 : 4;
       setChapter((old) => (old === phase ? old : phase));
@@ -102,12 +173,15 @@ export default function ProductReveal() {
     };
     const sizeObserver = new ResizeObserver(resize);
     sizeObserver.observe(el);
-    img.onload = () => {
+    const ready = () => {
       if (disposed) return;
-      setLoaded(1);
+      setLoaded((count) => count + 1);
       draw(proxy.current.p, true);
     };
+    img.onload = ready;
+    base.onload = ready;
     img.src = `${import.meta.env.BASE_URL}images/studio-opening.jpg`;
+    base.src = `${import.meta.env.BASE_URL}images/studio-motion-base.jpg`;
     resize();
     const media = matchMedia("(prefers-reduced-motion: reduce)");
     const preference = (e: MediaQueryListEvent) => setStill(e.matches);
@@ -257,7 +331,7 @@ export default function ProductReveal() {
             <canvas
               ref={canvas}
               role="img"
-              aria-label="Cinematic close-ups of the approved machine concept image: the full instrument, pipette, plate and gantry. Camera movement only; hardware is not operating."
+              aria-label="Illustrative pipetting cycle using layered concept imagery: the pipette lowers, lifts clear of the plate, travels to a destination well, dispenses and retracts. Not a validated physical simulation."
             />
           </div>
           <div key={chapter} className="sequence-caption">
@@ -298,7 +372,7 @@ export default function ProductReveal() {
             </button>
           </div>
           <div className="sequence-foot">
-            <span>AI concept image · Camera movement only</span>
+            <span>Animated concept · Illustrative mechanism</span>
             <span className="scroll-instruction">
               {still ? "STATIC VIEW" : "SCROLL TO EXPLORE"}
             </span>
@@ -309,7 +383,7 @@ export default function ProductReveal() {
           <div className="sequence-static-note">
             <p>
               The proposed workflow draws liquid from a source, lifts the
-              pipette, travels, and dispenses into a destination. This image study presents the proposed design. Mechanical dimensions, deck
+              pipette, travels, and dispenses into a destination. This layered animation illustrates that intent. Mechanical dimensions, deck
               clearance, volume accuracy, tip pickup and disposal require
               further development and validation.
             </p>
