@@ -79,6 +79,8 @@ export default function ProductReveal() {
       shown.current = index;
       const img = images[index];
       if (!img) return;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
       ctx.fillStyle = "#080b10";
       ctx.fillRect(0, 0, el.width, el.height);
       const fit = Math.min(
@@ -193,7 +195,7 @@ export default function ProductReveal() {
         trigger: section.current,
         start: () => `top top+=${innerWidth < 701 ? 60 : 68}`,
         end: "bottom bottom",
-        scrub: 0.65,
+        scrub: 0.9,
       },
     });
     const resume = (event: Event) => {
@@ -313,7 +315,7 @@ export default function ProductReveal() {
               aria-label="Rendered transfer sequence. The same pipette lowers to a source, lifts and travels, then lowers to a destination. Illustrative motion, not a physical robot simulation."
             />
           </div>
-          <div className="sequence-caption">
+          <div key={chapter} className="sequence-caption">
             <span>{chapters[chapter].label}</span>
             <h3>{chapters[chapter].title}</h3>
             <p>{chapters[chapter].text}</p>

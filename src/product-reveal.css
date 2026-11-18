@@ -305,9 +305,8 @@
     margin-top: 30px;
   }
   .launch-portrait img {
-    width: 110%;
-    max-width: none;
-    margin-left: -5%;
+    width: 100%;
+    margin: 0 auto;
   }
   .launch-portrait figcaption {
     font-size: 6px;
@@ -431,4 +430,52 @@
   .sequence-foot {
     bottom: 10px;
   }
+}
+
+/* Quiet, local interactions keep the rendered product as the focal point. */
+.launch-portrait img {
+  transition: transform 900ms cubic-bezier(.22, 1, .36, 1);
+}
+.launch-actions > a:last-child,
+.sequence-foot a {
+  transition: color 250ms ease;
+}
+.launch-actions > a:last-child span {
+  display: inline-block;
+  transition: transform 350ms cubic-bezier(.22, 1, .36, 1);
+}
+.sequence-control button {
+  transition: color 250ms ease, background-color 250ms ease,
+    border-color 250ms ease, transform 350ms cubic-bezier(.22, 1, .36, 1);
+}
+.sequence-control button:focus-visible,
+.sequence-control input:focus-visible {
+  outline: 2px solid #bcd3e4;
+  outline-offset: 5px;
+}
+.sequence-caption {
+  animation: chapter-arrive 420ms cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes chapter-arrive {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .launch-portrait:hover img { transform: translateY(-3px) scale(1.012); }
+  .launch-actions > a:last-child:hover span { transform: translateY(3px); }
+  .launch-actions > a:last-child:hover,
+  .sequence-foot a:hover { color: #fff; }
+  .sequence-control button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: #8aa7bc80;
+    background-color: #ffffff10;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .launch-portrait img,
+  .launch-actions > a:last-child,
+  .launch-actions > a:last-child span,
+  .sequence-control button,
+  .sequence-foot a { transition: none; }
+  .sequence-caption { animation: none; }
 }
