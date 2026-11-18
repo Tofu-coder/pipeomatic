@@ -323,7 +323,7 @@ function DetailGallery() {
         </figcaption>
       </figure>
       <p className="detail-footnote">
-        Concept renders from a single source model. Hardware is proposed, not
+        Earlier concept renders of the proposed system. Hardware is proposed, not
         built or validated.
       </p>
     </section>
@@ -494,13 +494,13 @@ function App() {
             <div className="diagram">
               <img
                 src={`${import.meta.env.BASE_URL}images/studio-detail.jpg`}
-                alt="Studio-rendered close-up of the same proposed gantry and pipette used in the opening sequence"
+                alt="Studio-rendered close-up from an earlier proposed gantry and pipette design"
                 loading="lazy"
                 width="1600"
                 height="1200"
               />
               <p>
-                Rendered from the same source model as the opening sequence.
+                Earlier design exploration of the proposed gantry and pipette.
                 <br />
                 Design visualization · Not fabricated or clearance-validated.
               </p>
